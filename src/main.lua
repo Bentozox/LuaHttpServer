@@ -6,18 +6,22 @@
 
 local httpServer = require("HttpServer")
 local Status = require 'Status'
-
+local jsonResponse = require 'request.JsonResponse'
 
 -- Init http server
 httpServer.init("localhost", 8080)
 
 httpServer.route("/", function(request)
-    request.setResponseHeaders({
-        status = Status.OK,
-    })
+    --request.setResponseHeaders({
+    --    [':status'] = Status.OK
+    --})
+    --request.write("Hello World!")
+    --request.flush()
 
-    request.write("Hello Benjamin!\n")
-    request.write("Haha!\n")
+    return jsonResponse({
+        name = "Benjamin",
+        age = 18
+    })
 end)
 
 -- Start http server

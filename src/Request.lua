@@ -26,7 +26,7 @@ function Request(stream)
         local responseHeaders = headersM.new()
 
         for headerKey, headerValue in pairs(headers) do
-            responseHeaders:append(':' .. headerKey, tostring(headerValue))
+            responseHeaders:append(headerKey, tostring(headerValue))
         end
 
         stream:write_headers(responseHeaders, self.getRequestHeader('method') == 'HEAD')

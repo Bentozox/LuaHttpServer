@@ -11,6 +11,9 @@ local Status = require 'Status'
 local Request = require 'Request'
 
 
+---@field public server http.server
+---@field public route RouteRepository
+---@field public timeout number @default 10
 local self = {
     server = nil, -- Server
     routeRepository = require "RouteRepository", -- Route
@@ -28,6 +31,7 @@ self.init = function(host, port)
         host = host,
         port = port,
         onstream = self.onRequest,
+        version = 1.1,
     }
 
     -- self.server.settimeout(self.timeout)
@@ -48,16 +52,22 @@ end
 
 
 self.onRequest = function(sv, stream)
-    local request = Request.new(stream)
+    print("Connection client")
+    local request = Request.new(stream) -- Create request
+    local path = request.getRequestHeader('path') or '/' -- Get path
 
-    local path = request.getRequestHeader('path') or '/'
-
-    if not self.routeRepository.tryRoute(path, request) then
+    local found, response = self.routeRepository.tryRoute(path, request) -- Try to find a route
+    if not found then
         request.setResponseHeaders({
-            status = Status.NOT_FOUND
+            [':status'] = Status.NOT_FOUND
         })
     else
-        request.flush()
+        if response ~= nil then
+            response.execute(request) -- Execute the response builder
+        end
+        request.setResponseHeaders({
+            [':status'] = Status.OK -- TODO CHange by NO_CONTENT but remove write and ... from Request
+        })
     end
 end
 
