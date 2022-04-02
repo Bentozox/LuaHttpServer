@@ -9,6 +9,7 @@ local httpServerM = require "http.server"
 local headersM = require 'http.headers'
 local Status = require 'Status'
 local Request = require 'Request'
+local TableUtils = require 'utils.Table'
 
 
 ---@field public server http.server
@@ -52,9 +53,8 @@ end
 
 
 self.onRequest = function(sv, stream)
-    print("Connection client")
-    local request = Request.new(stream) -- Create request
-    local path = request.getRequestHeader('path') or '/' -- Get path
+    local request = TableUtils.readOnly(Request.new(stream)) -- Create a read only request
+    local path = request.path -- Get path
 
     local found, response = self.routeRepository.tryRoute(path, request) -- Try to find a route
     if not found then

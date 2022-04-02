@@ -12,11 +12,8 @@ local jsonResponse = require 'request.JsonResponse'
 httpServer.init("localhost", 8080)
 
 httpServer.route("/", function(request)
-    --request.setResponseHeaders({
-    --    [':status'] = Status.OK
-    --})
-    --request.write("Hello World!")
-    --request.flush()
+    print("okds")
+    print("Nom", request.get['name'])
 
     return jsonResponse({
         name = "Benjamin",

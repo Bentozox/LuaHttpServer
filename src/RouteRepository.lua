@@ -28,7 +28,12 @@ end
 ---@param request Request Request object
 ---@return (boolean, Response) If route is found, return true and response, otherwise return false and nil
 self.tryRoute = function(url, request)
-    -- local path = url:match("^[^/]*") -- Path so without params
+    -- Extract path from request
+    local path = url:match("^(/[^?]*)") or '/'
+    -- Replace all //* by /
+    path = path:gsub("//+", "/")
+    print(path)
+
     for _, route in pairs(self.routes) do
         if route.path == url then
             return true, route.handler(request) -- Route found

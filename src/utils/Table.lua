@@ -7,37 +7,18 @@
 ---@module Table
 local Table = {}
 
-
-
----Provide to create a read-only value/table.
----@param value any
----@see Thanks to https://stackoverflow.com/questions/28312409/how-can-i-implement-a-read-only-table-in-lua
-function Table:readOnly(t)
-    local proxies = setmetatable( {}, { __mode = "k" } )
-
-    if type( t ) == "table" then
-        -- check whether we already have a readonly proxy for this table
-        local p = proxies[ t ]
-        if not p then
-            -- create new proxy table for t
-            p = setmetatable( {}, {
-                __index = function( _, k )
-                    -- apply `readonly` recursively to field `t[k]`
-                    return readOnly( t[ k ] )
-                end,
-                __newindex = function()
-                    error( "table is readonly", 2 )
-                end,
-            } )
-            proxies[ t ] = p
+-- Create method that transform table as Read Only Table
+function Table.readOnly(t)
+    local proxy = {}
+    setmetatable(proxy, {
+        __index = t,
+        __newindex = function()
+            print("[ERROR : utils.Table] attempt to update a read-only table")
+            error("[ERROR : utils.Table] attempt to update a read-only table")
         end
-        return p
-    else
-        -- non-tables are returned as is because primitives are immutable
-        return t
-    end
+    })
+    return proxy
 end
-
 
 
 
