@@ -5,6 +5,8 @@
 ---
 
 local headersM = require 'http.headers'
+local HttpUtils = require 'http.util'
+
 
 ---@module Request
 function Request(stream)
@@ -44,8 +46,9 @@ function Request(stream)
 
     -- Plain path : with query string
     local plainSecuredPath = self.getRequestHeader('path') or '/'
-    plainSecuredPath = securePath(plainSecuredPath)
-    print("TEST", getPath(plainSecuredPath))
+    -- plainSecuredPath = securePath(plainSecuredPath)
+    plainSecuredPath = HttpUtils.decodeURI(plainSecuredPath) -- decode URI to plain path
+
     ---Request path without query string
     ---@type string
     self.path = getPath(plainSecuredPath)

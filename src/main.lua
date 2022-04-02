@@ -11,8 +11,7 @@ local jsonResponse = require 'request.JsonResponse'
 -- Init http server
 httpServer.init("localhost", 8080)
 
-httpServer.route("/", function(request)
-    print("okds")
+httpServer.route("/", "GET", function(request)
     print("Nom", request.get['name'])
 
     return jsonResponse({

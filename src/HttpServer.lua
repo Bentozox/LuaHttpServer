@@ -62,19 +62,21 @@ self.onRequest = function(sv, stream)
             [':status'] = Status.NOT_FOUND
         })
     else
-        if response ~= nil then
+        if response ~= nil and response.execute ~= nil then
             response.execute(request) -- Execute the response builder
         end
     end
 
+    request.flush() -- Flush the response
 end
 
 
 ---Adding route to http server request dispatcher
 ---@param path string Route path
+---@param methods string|table Route method(s)
 ---@param handler function handler called when request
-self.route = function(path, handler)
-    self.routeRepository.add(path, handler)
+self.route = function(path, methods, handler)
+    self.routeRepository.add(path, methods, handler)
 end
 
 

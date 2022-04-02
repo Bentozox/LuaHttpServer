@@ -4,8 +4,11 @@
 --- DateTime: 1/04/22 12:08
 ---
 
+local TableUtils = require("utils.Table")
+
+
 ---@module RouteRepository
----@field public routes {path:string, handler:fun(request:Request):Response|nil}[] Routes of server
+---@field public routes {path:string, methods:string[], handler:fun(request:Request):Response|nil}[] Routes of server
 local self = {
     routes = {}, -- Routes table
 }
@@ -13,11 +16,20 @@ local self = {
 
 ---Adding route to http server request dispatcher
 ---@param path string Route path
+---@param methods string|table Route method(s)
 ---@param handler fun(request:Request):Response|nil handler called when request
-self.add = function(path, handler)
+self.add = function(path, methods, handler)
+    -- Cast methods to table if string. if nil or empty then default to GET in table
+    if type(methods) == "string" then
+        methods = {methods}
+    elseif methods == nil or #methods == 0 then
+        methods = {"GET"}
+    end
+
     local route = {
         path = path,
-        handler = handler
+        handler = handler,
+        methods = methods,
     }
     table.insert(self.routes, route)
 end
@@ -28,14 +40,16 @@ end
 ---@param request Request Request object
 ---@return (boolean, Response) If route is found, return true and response, otherwise return false and nil
 self.tryRoute = function(url, request)
+    local method = request.getRequestHeader("method")
+
     -- Extract path from request
     local path = url:match("^(/[^?]*)") or '/'
+
     -- Replace all //* by /
     path = path:gsub("//+", "/")
-    print(path)
 
     for _, route in pairs(self.routes) do
-        if route.path == url then
+        if route.path == url and TableUtils.hasValue(route.methods, method) then
             return true, route.handler(request) -- Route found
         end
     end

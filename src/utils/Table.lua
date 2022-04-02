@@ -22,4 +22,17 @@ end
 
 
 
+--Check if table has a value in it or not
+--@param table Table to check in.
+--@param value Value to check in table.
+function Table.hasValue(table, value)
+    for _, v in pairs(table) do
+        if v == value then
+            return true
+        end
+    end
+    return false
+end
+
+
 return Table
