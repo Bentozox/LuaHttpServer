@@ -65,10 +65,8 @@ self.onRequest = function(sv, stream)
         if response ~= nil then
             response.execute(request) -- Execute the response builder
         end
-        request.setResponseHeaders({
-            [':status'] = Status.OK -- TODO CHange by NO_CONTENT but remove write and ... from Request
-        })
     end
+
 end
 
 
