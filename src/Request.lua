@@ -35,18 +35,19 @@ function Request(stream)
     --- TODO : Hide to handler
     ---@param body string Body of response
     self.write = function(body)
+        addCookieHeader(responseHeaders, self.cookie)
         stream:write_headers(responseHeaders, self.getRequestHeader(':method') == 'HEAD') -- write response headers
         stream:write_chunk(body, true) -- write response body
     end
 
     self.flush = function()
+        addCookieHeader(responseHeaders, self.cookie)
         stream:write_headers(responseHeaders, self.getRequestHeader(':method') == 'HEAD') -- write response headers
         stream:write_chunk("", true)
     end
 
     -- Plain path : with query string
     local plainSecuredPath = self.getRequestHeader(':path') or '/'
-    -- plainSecuredPath = securePath(plainSecuredPath)
     plainSecuredPath = HttpUtils.decodeURI(plainSecuredPath) -- decode URI to plain path
 
     ---Request path without query string
@@ -60,6 +61,10 @@ function Request(stream)
     ---Request body (Data of POST request)
     ---@type table
     self.post = getPostData(self, stream)
+
+    ---Cookies of request (Data of Cookie request).
+    ---@type table
+    self.cookie = getCookies(self)
 
     return self
 end
@@ -86,10 +91,12 @@ end
 ---@return table
 function getGetData(path)
     local getData = {}
+
     if path:find('?') then
         local getDataString = path:sub(path:find('?') + 1)
         for key, value in string.gmatch(getDataString, '([^&]+)=([^&]+)') do
-            getData[key] = value
+            -- Decode value to protect from XSS
+            getData[HttpUtils.decodeURIComponent(key)] = HttpUtils.decodeURIComponent(value)
         end
     end
     return getData
@@ -111,7 +118,8 @@ function getPostData(request, stream)
     if contentType == 'application/x-www-form-urlencoded' then
         local postDataString = stream:get_body_as_string()
         for key, value in string.gmatch(postDataString, '([^&]+)=([^&]+)') do
-            postData[key] = value
+            -- Decode value to protect from XSS
+            postData[HttpUtils.decodeURIComponent(key)] = HttpUtils.decodeURIComponent(value)
         end
     elseif contentType == 'multipart/form-data' then
         local postDataString = stream:get_body_as_string()
@@ -125,6 +133,34 @@ function getPostData(request, stream)
     end
 
     return postData
+end
+
+
+--- Method that extract cookies from request and return it as table of key/value pairs
+---@param request Request Request object
+---@return table Cookies data
+function getCookies(request)
+    local cookies = {}
+    local cookieString = request.getRequestHeader('cookie') or ''
+
+    for key, value in string.gmatch(cookieString, '([^;]+)=([^;]+)') do
+        cookies[key] = value
+    end
+    return cookies
+end
+
+
+--- Method that add cookies to response headers table (if not exists) as key value
+---@param responseHeaders table Response headers object
+---@param cookies table Cookies data
+function addCookieHeader(responseHeaders, cookies)
+    for key, value in pairs(cookies) do
+        if not responseHeaders:get('Set-Cookie') then
+            responseHeaders:append('Set-Cookie', key .. '=' .. value)
+        else
+            responseHeaders:append('Set-Cookie', '; ' .. key .. '=' .. value)
+        end
+    end
 end
 
 

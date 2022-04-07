@@ -7,14 +7,25 @@
 local httpServer = require("HttpServer")
 local Status = require 'Status'
 local ViewResponse = require 'request.ViewResponse'
+local JsonResponse = require 'request.JsonResponse'
 
 -- Init http server
 httpServer.init("localhost", 8080)
 
-httpServer.route("/", "GET", function(request)
+
+
+httpServer.route("/", {"GET", "POST"}, function(request)
+    if not request.cookie["value"] then
+        request.cookie["value"] = "Rien du tout"
+    end
+
+    if request.post["value"] then
+        print("POST: " .. request.post["value"])
+        request.cookie["value"] = request.post["value"]
+    end
 
     return ViewResponse("index.html", {
-        name = "Benja"
+        value = request.cookie["value"],
     })
 end)
 

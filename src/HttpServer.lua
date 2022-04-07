@@ -10,6 +10,7 @@ local headersM = require 'http.headers'
 local Status = require 'Status'
 local Request = require 'Request'
 local TableUtils = require 'utils.Table'
+local HttpUtils = require 'http.util'
 
 
 ---@field public server http.server
@@ -53,8 +54,8 @@ end
 
 
 self.onRequest = function(sv, stream)
-    local request = TableUtils.readOnly(Request.new(stream)) -- Create a read only request
-    local path = request.path -- Get path
+    local request = Request.new(stream) -- Create a read only request
+    local path = HttpUtils.decodeURI(request.path) -- Decode value to avoid XSS attacks
 
     local found, response = self.routeRepository.tryRoute(path, request) -- Try to find a route
     if not found then

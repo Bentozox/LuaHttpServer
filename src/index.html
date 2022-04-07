@@ -8,13 +8,18 @@
     <title>Document</title>
 </head>
 <body>
-<h1>Hello World</h1>
-@{
-    if data.name ~= nil then
-        echo("<h2>Bonjour mon nom est " .. data.name .. "</h2>")
-    else
-        echo("<h2>Aucun nom précisé</h2>")
-    end
-}
+    <h1>Gestion cookie</h1>
+
+    <form action="/" method="POST">
+        @{
+            print("osfdk", data.value)
+            if data.value then
+                echo("<input type='text' name='value' placeholder='Valeur du cookie' value='" .. data.value .. "'>")
+            else
+                echo("<input type='text' name='value' value='$value' placeholder='Valeur du cookie'>")
+            end
+        }
+        <input type="submit" value="Sauvegarder le cookie">
+    </form>
 </body>
 </html>

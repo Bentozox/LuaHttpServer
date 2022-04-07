@@ -23,7 +23,6 @@ function ViewParser:parse(content, data)
     local currentCode, startIndex, endIndex = extractContent(content, 1)
     while currentCode ~= nil and endIndex ~= nil do
         local generatedHtml = loadCode(currentCode, data)
-        print("Generated HTML: ", generatedHtml)
         content = replaceContent(content, generatedHtml, startIndex, endIndex)
         currentCode, endIndex = extractContent(content, endIndex)
     end
