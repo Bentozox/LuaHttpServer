@@ -12,6 +12,7 @@ local View = require("view.View")
 ---@param data any Value to transform as string
 local function ViewResponse(path, data)
     local self = require("request.Response")()
+    data = data or {}
 
     ---Called to respond to client.
     ---@param request Request The client request to respond to.

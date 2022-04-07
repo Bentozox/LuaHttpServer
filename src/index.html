@@ -7,14 +7,14 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
 </head>
-@{
-print("Hey ", data.name, "!")
-}
-}
 <body>
 <h1>Hello World</h1>
 @{
-print("Salut")
+    if data.name ~= nil then
+        echo("<h2>Bonjour mon nom est " .. data.name .. "</h2>")
+    else
+        echo("<h2>Aucun nom précisé</h2>")
+    end
 }
 </body>
 </html>
