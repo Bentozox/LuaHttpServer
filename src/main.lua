@@ -6,17 +6,15 @@
 
 local httpServer = require("HttpServer")
 local Status = require 'Status'
-local jsonResponse = require 'request.JsonResponse'
+local ViewResponse = require 'request.ViewResponse'
 
 -- Init http server
 httpServer.init("localhost", 8080)
 
 httpServer.route("/", "GET", function(request)
-    print("Nom", request.get['name'])
 
-    return jsonResponse({
-        name = "Benjamin",
-        age = 18
+    return ViewResponse("index.html", {
+        name = "Benja"
     })
 end)
 

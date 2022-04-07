@@ -18,7 +18,7 @@ function Request(stream)
     ---@param headerKey string Key of header
     ---@return string Value of header
     self.getRequestHeader = function(headerKey)
-        return requestHeaders:get(':' .. headerKey)
+        return requestHeaders:get(headerKey)
     end
 
     ---Set response headers
@@ -35,17 +35,17 @@ function Request(stream)
     --- TODO : Hide to handler
     ---@param body string Body of response
     self.write = function(body)
-        stream:write_headers(responseHeaders, self.getRequestHeader('method') == 'HEAD') -- write response headers
+        stream:write_headers(responseHeaders, self.getRequestHeader(':method') == 'HEAD') -- write response headers
         stream:write_chunk(body, true) -- write response body
     end
 
     self.flush = function()
-        stream:write_headers(responseHeaders, self.getRequestHeader('method') == 'HEAD') -- write response headers
+        stream:write_headers(responseHeaders, self.getRequestHeader(':method') == 'HEAD') -- write response headers
         stream:write_chunk("", true)
     end
 
     -- Plain path : with query string
-    local plainSecuredPath = self.getRequestHeader('path') or '/'
+    local plainSecuredPath = self.getRequestHeader(':path') or '/'
     -- plainSecuredPath = securePath(plainSecuredPath)
     plainSecuredPath = HttpUtils.decodeURI(plainSecuredPath) -- decode URI to plain path
 
@@ -57,19 +57,17 @@ function Request(stream)
     ---@type table
     self.get = getGetData(plainSecuredPath)
 
+    ---Request body (Data of POST request)
+    ---@type table
+    self.post = getPostData(self, stream)
+
     return self
 end
 
 --- Methode that secure path and return secure path
 ---@param path string Path to secure
 ---@return string Secure path
-
-
-
-
-
 function securePath(path)
-
     -- Secure path to avoid path traversal attack (e.g. /../../etc/passwd)
     path = path:gsub('/[^/]*/%.%./', '/')
 
@@ -96,6 +94,49 @@ function getGetData(path)
     end
     return getData
 end
+
+
+-- Method that extract post data from request body and return it as table of key/value pairs
+-- Adapt traitment of body data depending of content-type header (application/x-www-form-urlencoded or multipart/form-data or other)
+--@param request Request object
+--@param stream Stream of request (use to get body data)
+--@return table|string Post data
+function getPostData(request, stream)
+    local postData = {}
+
+    -- Get content-type header and parse it to get content-type value without boundary (e.g. multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW -> multipart/form-data)
+    local contentType = request.getRequestHeader('content-type') or ''
+    contentType = contentType:match('^([^;]+)') or ''
+
+    if contentType == 'application/x-www-form-urlencoded' then
+        local postDataString = stream:get_body_as_string()
+        for key, value in string.gmatch(postDataString, '([^&]+)=([^&]+)') do
+            postData[key] = value
+        end
+    elseif contentType == 'multipart/form-data' then
+        local postDataString = stream:get_body_as_string()
+
+        -- Get boundary value
+        local boundary = request.getRequestHeader('content-type'):match('boundary=([^;]+)') or ''
+        postData = getMultipartFormData(postDataString, boundary)
+
+    else
+        postData = stream:get_body_as_string()
+    end
+
+    return postData
+end
+
+
+--- Method that extract multipart/form-data data from request body and return it as table of key/value pairs
+---@param postDataString string Body of request
+---@return table Multipart/form-data data
+function getMultipartFormData(postDataString, boundary)
+    local postData = {}
+
+    return postData
+end
+
 
 
 return {

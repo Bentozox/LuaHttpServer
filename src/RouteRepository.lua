@@ -40,7 +40,7 @@ end
 ---@param request Request Request object
 ---@return (boolean, Response) If route is found, return true and response, otherwise return false and nil
 self.tryRoute = function(url, request)
-    local method = request.getRequestHeader("method")
+    local method = request.getRequestHeader(":method")
 
     -- Extract path from request
     local path = url:match("^(/[^?]*)") or '/'
